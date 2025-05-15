@@ -4,7 +4,7 @@ A discord bot that can generate videos, collected from outplayed.tv, in Apex Cri
 
 ## Setup
 
-Install `ffmpeg`, `ffprobe`, and `pdm`.
+Install `ffmpeg`, `ffprobe`, and `pdm`. Get your `youtube-oauth2.json` as [it](https://developers.google.com/youtube/v3/guides/uploading_a_video) told.
 
 ```bash
 pdm install

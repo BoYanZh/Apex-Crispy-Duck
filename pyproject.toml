@@ -3,7 +3,7 @@ name = "Apex-Crispy-Duck"
 version = "0.1.0"
 description = "A discord bot that can generate videos, collected from outplayed.tv, in Apex Crispy Duck style."
 authors = [{ name = "BoYanZh", email = "boyanzh233@gmail.com" }]
-dependencies = ["disnake>=2.10.1", "aiohttp>=3.11.18", "dotenv>=0.9.9"]
+dependencies = ["disnake>=2.10.1", "aiohttp>=3.11.18", "dotenv>=0.9.9", "google-api-python-client>=2.169.0", "google-auth-oauthlib>=1.2.2", "google-auth-httplib2>=0.2.0", "oauth2client>=4.1.3"]
 requires-python = ">=3.11"
 readme = "README.md"
 license = { text = "MIT" }

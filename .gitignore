@@ -175,3 +175,5 @@ cython_debug/
 
 /assets
 /output
+client_secrets.json
+youtube-oauth2.json

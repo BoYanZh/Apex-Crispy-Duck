@@ -129,7 +129,6 @@ def merge_audios(
     minimum_duration: float = 120,
 ):
     """Merge multiple audio files into one file."""
-    base_name = os.path.splitext(os.path.basename(output_path))[0]
     fns = [fn for fn in os.listdir(AUDIO_PATH)]
     for fn in fns:
         if fn.endswith("_standardized.m4a"):
@@ -158,10 +157,15 @@ def merge_audios(
     current_duration = 0.0
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt") as f:
         for fn in fns:
+            duration = get_media_duration(os.path.join(AUDIO_PATH, fn))
+            if duration == 0.0:
+                logging.error(f"Error getting duration for {fn}")
+                continue
+            f.write(f"file '{os.path.abspath(os.path.join(AUDIO_PATH, fn))}'\n")
+            current_duration += duration
             if current_duration > minimum_duration:
                 break
-            f.write(f"file '{os.path.abspath(os.path.join(AUDIO_PATH, fn))}'\n")
-            current_duration += get_media_duration(os.path.join(AUDIO_PATH, fn))
+        logging.info(f"total audio duration: {current_duration}")
         f.flush()
         args = [
             "ffmpeg",
@@ -196,7 +200,6 @@ def merge_videos_with_bgm(
             )
         )
         f.flush()
-        subprocess.run(["cat", f.name], check=True)
         filter_complex = (
             f"[0:a]volume={video_volume}[v_audio];"
             f"[1:a]volume={bgm_volume}[bgm_audio];"

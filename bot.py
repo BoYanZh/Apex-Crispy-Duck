@@ -11,6 +11,7 @@ from disnake.ext import commands
 
 from config import *
 from utils import *
+from youtube import upload_video
 
 logging.basicConfig(
     level=logging.INFO,
@@ -108,7 +109,7 @@ async def fetch_one_year_msg() -> None:
     )
 
 
-async def create_final_video(
+async def create_and_upload_final_video(
     inter: disnake.ApplicationCommandInteraction,
     texts: list[str],
     fns: list[str],
@@ -123,11 +124,12 @@ async def create_final_video(
         await inter.edit_original_response(f"processing videos... {i+1}/{len(texts)}")
         if not os.path.exists(os.path.join(OUTPUT_VIDEO_PATH, "tmp", fn)):
             await asyncio.to_thread(process_video, fn, text)
-            video_durations.append(
-                await asyncio.to_thread(
-                    get_media_duration, os.path.join(VIDEO_PATH, fn)
-                )
+        video_durations.append(
+            await asyncio.to_thread(
+                get_media_duration, os.path.join(VIDEO_PATH, fn)
             )
+        )
+    logging.info(f"total video duration: {sum(video_durations)}")
     await inter.edit_original_response("merging audios...")
     audio_path = await asyncio.to_thread(
         merge_audios,
@@ -141,7 +143,9 @@ async def create_final_video(
         os.path.join(OUTPUT_VIDEO_PATH, f"{output_fn}.mp4"),
         audio_path,
     )
-    return video_path
+    await inter.edit_original_response("uploading the final video to youtube...")
+    url = await asyncio.to_thread(upload_video, video_path, output_fn)
+    await inter.edit_original_response(url)
 
 
 @bot.event
@@ -230,12 +234,7 @@ async def excavate(
         for item in l:
             texts.append(item[0])
             fns.append(item[1])
-    video_path = await create_final_video(inter, texts, fns, output_fn)
-    if video_path == "":
-        return
-    await inter.edit_original_response("moving videos to homelab...")
-    await asyncio.to_thread(scp, video_path, f"{SCP_DST_PATH}/{output_fn}.mp4")
-    await inter.edit_original_response(f"{SCP_DST_URL}/{output_fn}.mp4")
+    await create_and_upload_final_video(inter, texts, fns, output_fn)
 
 
 @bot.slash_command(description="Bake a video from messages within the last 24 hours.")
@@ -280,17 +279,7 @@ async def bake(inter: disnake.ApplicationCommandInteraction, hours: int = 24) ->
             simple_msg = cleanup_msg(message)
             texts.append("@" + user + "\n" + simple_msg)
             fns.append(fn)
-    video_path = await create_final_video(inter, texts, fns, output_fn)
-    if inter.guild_id == TEST_GUILD:
-        await inter.edit_original_response(
-            f"it's a test server, local file: {video_path}"
-        )
-        return
-    if video_path == "":
-        return
-    await inter.edit_original_response("moving videos to homelab...")
-    await asyncio.to_thread(scp, video_path, f"{SCP_DST_PATH}/{output_fn}.mp4")
-    await inter.edit_original_response(f"{SCP_DST_URL}/{output_fn}.mp4")
+    await create_and_upload_final_video(inter, texts, fns, output_fn)
 
 
 if __name__ == "__main__":
