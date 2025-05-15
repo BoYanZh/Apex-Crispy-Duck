@@ -1,0 +1,19 @@
+[project]
+name = "Apex-Crispy-Duck"
+version = "0.1.0"
+description = "A discord bot that can generate videos, collected from outplayed.tv, in Apex Crispy Duck style."
+authors = [{ name = "BoYanZh", email = "boyanzh233@gmail.com" }]
+dependencies = ["disnake>=2.10.1", "aiohttp>=3.11.18", "dotenv>=0.9.9"]
+requires-python = ">=3.11"
+readme = "README.md"
+license = { text = "MIT" }
+
+[tool.pdm]
+distribution = false
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "isort>=6.0.1",
+    "mypy>=1.15.0",
+]
