@@ -34,13 +34,19 @@ _original_edit_original_response = disnake.Interaction.edit_original_response
 
 
 async def _patched_edit_original_response(*args, **kwargs):
-    try:
-        return await _original_edit_original_response(*args, **kwargs)
-    except Exception as e:
-        logging.error(f"Error in edit_original_response: {e}")
-    finally:
-        content = args[1]
-        logging.info(f"edit_original_response: {content}")
+    retries = 3
+    for i in range(retries):
+        try:
+            return await _original_edit_original_response(*args, **kwargs)
+        except Exception as e:
+            logging.error(
+                f"Error in edit_original_response (attempt {i+1}/{retries}): {e}"
+            )
+            if i < retries - 1:
+                await asyncio.sleep(2 ** (i + 1))
+        finally:
+            content = args[1]
+            logging.info(f"edit_original_response: {content}")
 
 
 disnake.Interaction.edit_original_response = _patched_edit_original_response
@@ -114,6 +120,7 @@ async def create_and_upload_final_video(
     texts: list[str],
     fns: list[str],
     output_fn: str,
+    force_process: bool = False,
 ) -> str:
     if len(texts) == 0:
         await inter.edit_original_response("no messages found for videos")
@@ -122,12 +129,13 @@ async def create_and_upload_final_video(
     video_durations = []
     for i, (text, fn) in enumerate(zip(texts, fns)):
         await inter.edit_original_response(f"processing videos... {i+1}/{len(texts)}")
-        if not os.path.exists(os.path.join(OUTPUT_VIDEO_PATH, "tmp", fn)):
+        if (
+            not os.path.exists(os.path.join(OUTPUT_VIDEO_PATH, "tmp", fn))
+            or force_process
+        ):
             await asyncio.to_thread(process_video, fn, text)
         video_durations.append(
-            await asyncio.to_thread(
-                get_media_duration, os.path.join(VIDEO_PATH, fn)
-            )
+            await asyncio.to_thread(get_media_duration, os.path.join(VIDEO_PATH, fn))
         )
     logging.info(f"total video duration: {sum(video_durations)}")
     await inter.edit_original_response("merging audios...")
@@ -143,7 +151,21 @@ async def create_and_upload_final_video(
         os.path.join(OUTPUT_VIDEO_PATH, f"{output_fn}.mp4"),
         audio_path,
     )
-    await inter.edit_original_response("uploading the final video to youtube...")
+    duration = await asyncio.to_thread(get_media_duration, video_path)
+
+    def format_seconds(seconds):
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        secs = int(seconds % 60)
+        if hours == 0:
+            if minutes == 0:
+                return f"{secs:02d}s"
+            return f"{minutes:02d}:{secs:02d}"
+        return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+
+    await inter.edit_original_response(
+        f"uploading the final video ({format_seconds(duration)}) to youtube with title {output_fn}..."
+    )
     url = await asyncio.to_thread(upload_video, video_path, output_fn)
     await inter.edit_original_response(url)
 
@@ -280,6 +302,73 @@ async def bake(inter: disnake.ApplicationCommandInteraction, hours: int = 24) ->
             texts.append("@" + user + "\n" + simple_msg)
             fns.append(fn)
     await create_and_upload_final_video(inter, texts, fns, output_fn)
+
+
+class CustomizeModal(disnake.ui.Modal):
+    def __init__(self):
+        components = [
+            disnake.ui.TextInput(
+                label="Title",
+                placeholder="Foo Tag",
+                custom_id="title",
+                style=disnake.TextInputStyle.short,
+                max_length=50,
+            ),
+            disnake.ui.TextInput(
+                label="Content",
+                placeholder="Lorem ipsum dolor sit amet.",
+                custom_id="content",
+                style=disnake.TextInputStyle.paragraph,
+            ),
+        ]
+        super().__init__(title="Video Details", components=components)
+
+    async def callback(self, inter: disnake.ModalInteraction):
+        title = inter.text_values["title"]
+        content = inter.text_values["content"]
+        current_datetime = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        output_fn = title + "-" + current_datetime
+        await inter.response.defer()
+        await inter.edit_original_response("extracting messages...")
+        messages = [
+            line
+            for line in content.splitlines()
+            if extract_url_with_prefix(line, "https://outplayed.tv/")
+        ]
+        user = inter.user.display_name
+        texts = []
+        fns = []
+        await inter.edit_original_response(f"downloading {len(messages)} videos...")
+        for i, message in enumerate(messages):
+            await inter.edit_original_response(
+                f"downloading videos... {i+1}/{len(messages)}"
+            )
+            page_url = extract_url_with_prefix(message, "https://outplayed.tv/")
+            if not page_url:
+                continue
+            fn = hashlib.md5(page_url.encode()).hexdigest() + ".mp4"
+            if not os.path.exists(os.path.join(VIDEO_PATH, fn)):
+                video_url = await extract_video_url(page_url)
+                if not video_url:
+                    continue
+                await download_video(video_url, os.path.join(VIDEO_PATH, fn))
+            video_duration = await asyncio.to_thread(
+                get_media_duration, os.path.join(VIDEO_PATH, fn)
+            )
+            if video_duration == 0.0:
+                logging.warning(
+                    f"video duration is 0: {os.path.join(VIDEO_PATH, fn)}, message {message}"
+                )
+                continue
+            simple_msg = cleanup_msg(message)
+            texts.append("@" + user + "\n" + simple_msg)
+            fns.append(fn)
+        await create_and_upload_final_video(inter, texts, fns, output_fn, True)
+
+
+@bot.slash_command(description="Bake a video from customized messages, 1 per line.")
+async def customize(inter: disnake.ApplicationCommandInteraction):
+    await inter.response.send_modal(modal=CustomizeModal())
 
 
 if __name__ == "__main__":
