@@ -9,5 +9,5 @@ Install `ffmpeg`, `ffprobe`, and `pdm`. Get your `youtube-oauth2.json` as [it](h
 ```bash
 pdm install
 cp .env.example .env # and edit the .env file
-pdm run bot.py
+pdm run bot.py # or pdm bot
 ```
