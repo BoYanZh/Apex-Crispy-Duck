@@ -45,8 +45,9 @@ async def _patched_edit_original_response(*args, **kwargs):
             if i < retries - 1:
                 await asyncio.sleep(2 ** (i + 1))
         finally:
-            content = args[1]
-            logging.info(f"edit_original_response: {content}")
+            if len(args) > 1 and isinstance(args[1], str):
+                content = args[1]
+                logging.info(f"edit_original_response: {content}")
 
 
 disnake.Interaction.edit_original_response = _patched_edit_original_response
@@ -370,6 +371,29 @@ class CustomizeModal(disnake.ui.Modal):
 async def customize(inter: disnake.ApplicationCommandInteraction):
     await inter.response.send_modal(modal=CustomizeModal())
 
+@bot.slash_command(description="Get the list of commands.")
+async def help(inter: disnake.ApplicationCommandInteraction, command: str = "") -> None:
+    await inter.response.defer()
+    embed = disnake.Embed(title="Commands Info", color=disnake.Color.blue())
+    if command != "":
+        for s_command in bot.slash_commands:
+            if s_command.name == command:
+                val = s_command.description
+                for option in s_command.options:
+                    val += "\n"
+                    val += option.name + " - " + option.description
+                embed.add_field(name=command, value=val, inline=True)
+                await inter.edit_original_response(embed=embed)
+                return
+        embed.description = f"Command {command} doesn't exist."
+    else:
+        for s_command in bot.slash_commands:
+            if s_command.name == "help":
+                continue
+            embed.add_field(
+                name=s_command.name, value=s_command.description, inline=True
+            )
+    await inter.edit_original_response(embed=embed)
 
 if __name__ == "__main__":
     bot.run(BOT_TOKEN)
