@@ -168,7 +168,11 @@ async def create_and_upload_final_video(
         f"uploading the final video ({format_seconds(duration)}) to youtube with title {output_fn}..."
     )
     url = await asyncio.to_thread(upload_video, video_path, output_fn)
-    await inter.edit_original_response(url)
+    if inter.is_expired():
+        channel = bot.get_channel(inter.channel_id) or await bot.fetch_channel(inter.channel_id)
+        await channel.send(url)
+    else:
+        await inter.edit_original_response(url)
 
 
 @bot.event
