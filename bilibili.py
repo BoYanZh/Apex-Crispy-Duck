@@ -26,7 +26,7 @@ def upload_video(video_path: str, output_fn: str) -> str:
         bvid = publish_video_response["data"]["bvid"]
         logging.info(f"upload success!\tbvid:{bvid}")
         avid = CheckFormat().bv2av(bvid)
-        return f"https://www.bilibili.com/video/{avid}"
+        return f"https://www.bilibili.com/video/av{avid}/"
     else:
         logging.error(publish_video_response["message"])
         return ""
