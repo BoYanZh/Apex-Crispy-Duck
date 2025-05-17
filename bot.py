@@ -9,9 +9,10 @@ import traceback
 import disnake
 from disnake.ext import commands
 
+import bilibili
+import youtube
 from config import *
 from utils import *
-from youtube import upload_video
 
 logging.basicConfig(
     level=logging.INFO,
@@ -170,14 +171,20 @@ async def create_and_upload_final_video(
     await inter.edit_original_response(
         f"uploading the final video ({format_seconds(duration)}) to youtube with title {output_fn}..."
     )
-    url = await asyncio.to_thread(upload_video, video_path, output_fn)
-    if inter.is_expired():
-        channel = bot.get_channel(inter.channel_id) or await bot.fetch_channel(
-            inter.channel_id
-        )
-        await channel.send(url)
-    else:
-        await inter.edit_original_response(url)
+    channel = bot.get_channel(inter.channel_id) or await bot.fetch_channel(
+        inter.channel_id
+    )
+    async def youtube_worker():
+        url = await asyncio.to_thread(youtube.upload_video, video_path, output_fn)
+        if inter.is_expired():
+            await channel.send(url)
+        else:
+            await inter.edit_original_response(url)
+    async def bilibili_worker():
+        url = await asyncio.to_thread(bilibili.upload_video, video_path, output_fn)
+        if url:
+            await channel.send(url)
+    await asyncio.gather(youtube_worker(), bilibili_worker())
 
 
 @bot.event
