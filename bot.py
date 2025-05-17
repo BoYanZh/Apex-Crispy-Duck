@@ -28,6 +28,9 @@ bot = commands.Bot(
     command_sync_flags=command_sync_flags,
     intents=intents,
     test_guilds=[RUN_GUILD, TEST_GUILD],
+    activity=disnake.Activity(
+        name=f"ffmpeg & ffprobe", type=disnake.ActivityType.playing
+    ),
 )
 
 _original_edit_original_response = disnake.Interaction.edit_original_response
@@ -169,7 +172,9 @@ async def create_and_upload_final_video(
     )
     url = await asyncio.to_thread(upload_video, video_path, output_fn)
     if inter.is_expired():
-        channel = bot.get_channel(inter.channel_id) or await bot.fetch_channel(inter.channel_id)
+        channel = bot.get_channel(inter.channel_id) or await bot.fetch_channel(
+            inter.channel_id
+        )
         await channel.send(url)
     else:
         await inter.edit_original_response(url)
@@ -375,6 +380,7 @@ class CustomizeModal(disnake.ui.Modal):
 async def customize(inter: disnake.ApplicationCommandInteraction):
     await inter.response.send_modal(modal=CustomizeModal())
 
+
 @bot.slash_command(description="Get the list of commands.")
 async def help(inter: disnake.ApplicationCommandInteraction, command: str = "") -> None:
     await inter.response.defer()
@@ -398,6 +404,7 @@ async def help(inter: disnake.ApplicationCommandInteraction, command: str = "") 
                 name=s_command.name, value=s_command.description, inline=True
             )
     await inter.edit_original_response(embed=embed)
+
 
 if __name__ == "__main__":
     bot.run(BOT_TOKEN)
