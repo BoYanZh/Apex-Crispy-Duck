@@ -9,10 +9,10 @@ def upload_video(video_path: str, output_fn: str) -> str:
     uploader = UploadController()
     upload_metadata = uploader.package_upload_metadata(
         copyright=1,
-        tid=5,
+        tid=171,
         title=output_fn,
         desc="由 https://github.com/BoYanZh/Apex-Crispy-Duck 生成",
-        tag="FPS,第一视角,吃鸡,游戏视频,电子竞技,APEX英雄,精彩集锦,合集",
+        tag="FPS,第一视角,吃鸡,游戏视频,电子竞技,APEX英雄,精彩集锦",
         source="",
         cover="",
         dynamic="",
