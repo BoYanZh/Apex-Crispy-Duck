@@ -172,7 +172,7 @@ async def create_and_upload_final_video(
         return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
     await inter.edit_original_response(
-        f"uploading the final video ({format_seconds(duration)}) to youtube with title {output_fn}..."
+        f"uploading the final video ({format_seconds(duration)}) with title {title}..."
     )
     channel = bot.get_channel(inter.channel_id) or await bot.fetch_channel(
         inter.channel_id
