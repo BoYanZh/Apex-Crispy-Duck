@@ -12,7 +12,7 @@ def upload_video(video_path: str, output_fn: str) -> str:
         tid=4,
         title=output_fn,
         desc="由 https://github.com/BoYanZh/Apex-Crispy-Duck 生成",
-        tag="APEX英雄",
+        tag="APEX英雄,",
         source="",
         cover="",
         dynamic="",

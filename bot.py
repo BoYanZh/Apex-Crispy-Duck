@@ -125,11 +125,14 @@ async def create_and_upload_final_video(
     texts: list[str],
     fns: list[str],
     output_fn: str,
+    title: str = "",
     force_process: bool = False,
-) -> str:
+) -> None:
     if len(texts) == 0:
         await inter.edit_original_response("no messages found for videos")
         return ""
+    if title == "":
+        title = output_fn
     await inter.edit_original_response(f"processing {len(texts)} videos...")
     video_durations = []
     for i, (text, fn) in enumerate(zip(texts, fns)):
@@ -174,16 +177,19 @@ async def create_and_upload_final_video(
     channel = bot.get_channel(inter.channel_id) or await bot.fetch_channel(
         inter.channel_id
     )
+
     async def youtube_worker():
         url = await asyncio.to_thread(youtube.upload_video, video_path, output_fn)
         if inter.is_expired():
             await channel.send(url)
         else:
             await inter.edit_original_response(url)
+
     async def bilibili_worker():
         url = await asyncio.to_thread(bilibili.upload_video, video_path, output_fn)
         if url:
             await channel.send(url)
+
     await asyncio.gather(youtube_worker(), bilibili_worker())
 
 
@@ -215,6 +221,7 @@ async def excavate(
     inter: disnake.ApplicationCommandInteraction,
     minute_start: int = 0,
     duration: int = 10,
+    title: str = "",
 ) -> None:
     await inter.response.defer()
     if not os.path.exists(os.path.join(OUTPUT_TEXT_PATH, "all.json")):
@@ -273,11 +280,13 @@ async def excavate(
         for item in l:
             texts.append(item[0])
             fns.append(item[1])
-    await create_and_upload_final_video(inter, texts, fns, output_fn)
+    await create_and_upload_final_video(inter, texts, fns, output_fn, title)
 
 
 @bot.slash_command(description="Bake a video from messages within the last 24 hours.")
-async def bake(inter: disnake.ApplicationCommandInteraction, hours: int = 24) -> None:
+async def bake(
+    inter: disnake.ApplicationCommandInteraction, hours: int = 24, title: str = ""
+) -> None:
     current_datetime = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     output_fn = current_datetime
     await inter.response.defer()
@@ -318,7 +327,7 @@ async def bake(inter: disnake.ApplicationCommandInteraction, hours: int = 24) ->
             simple_msg = cleanup_msg(message)
             texts.append("@" + user + "\n" + simple_msg)
             fns.append(fn)
-    await create_and_upload_final_video(inter, texts, fns, output_fn)
+    await create_and_upload_final_video(inter, texts, fns, output_fn, title)
 
 
 class CustomizeModal(disnake.ui.Modal):
@@ -380,7 +389,7 @@ class CustomizeModal(disnake.ui.Modal):
             simple_msg = cleanup_msg(message)
             texts.append("@" + user + "\n" + simple_msg)
             fns.append(fn)
-        await create_and_upload_final_video(inter, texts, fns, output_fn, True)
+        await create_and_upload_final_video(inter, texts, fns, output_fn, title, True)
 
 
 @bot.slash_command(description="Bake a video from customized messages, 1 per line.")
