@@ -179,14 +179,14 @@ async def create_and_upload_final_video(
     )
 
     async def youtube_worker():
-        url = await asyncio.to_thread(youtube.upload_video, video_path, output_fn)
+        url = await asyncio.to_thread(youtube.upload_video, video_path, title)
         if inter.is_expired():
             await channel.send(url)
         else:
             await inter.edit_original_response(url)
 
     async def bilibili_worker():
-        url = await asyncio.to_thread(bilibili.upload_video, video_path, output_fn)
+        url = await asyncio.to_thread(bilibili.upload_video, video_path, title)
         if url:
             await channel.send(url)
 
