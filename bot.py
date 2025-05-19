@@ -177,6 +177,7 @@ async def create_and_upload_final_video(
     channel = bot.get_channel(inter.channel_id) or await bot.fetch_channel(
         inter.channel_id
     )
+    logging.info(f"Uploading video {video_path} with title {title}")
 
     async def youtube_worker():
         url = await asyncio.to_thread(youtube.upload_video, video_path, title)
@@ -223,6 +224,9 @@ async def excavate(
     duration: int = 10,
     title: str = "",
 ) -> None:
+    logging.info(
+        f"@{inter.user.display_name} /excavate minute_start:{minute_start} duration:{duration} title:{title}"
+    )
     await inter.response.defer()
     if not os.path.exists(os.path.join(OUTPUT_TEXT_PATH, "all.json")):
         await inter.edit_original_response("fetching 1 year messages...")
@@ -287,6 +291,7 @@ async def excavate(
 async def bake(
     inter: disnake.ApplicationCommandInteraction, hours: int = 24, title: str = ""
 ) -> None:
+    logging.info(f"@{inter.user.display_name} /bake hours:{hours} title:{title}")
     current_datetime = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     output_fn = current_datetime
     await inter.response.defer()
@@ -350,6 +355,9 @@ class CustomizeModal(disnake.ui.Modal):
         super().__init__(title="Video Details", components=components)
 
     async def callback(self, inter: disnake.ModalInteraction):
+        logging.info(
+            f"@{inter.user.display_name} /customize title:{inter.text_values["title"]} content:{inter.text_values["content"]}"
+        )
         title = inter.text_values["title"]
         content = inter.text_values["content"]
         current_datetime = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -399,6 +407,7 @@ async def customize(inter: disnake.ApplicationCommandInteraction):
 
 @bot.slash_command(description="Get the list of commands.")
 async def help(inter: disnake.ApplicationCommandInteraction, command: str = "") -> None:
+    logging.info(f"@{inter.user.display_name} /help command:{command}")
     await inter.response.defer()
     embed = disnake.Embed(title="Commands Info", color=disnake.Color.blue())
     if command != "":
