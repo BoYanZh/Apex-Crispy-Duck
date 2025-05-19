@@ -5,7 +5,9 @@ from bilitool.model.model import Model
 
 
 def upload_video(video_path: str, output_fn: str) -> str:
-    LoginController().check_bilibili_login()
+    if not LoginController().check_bilibili_login():
+        logging.error("bilibili login check failed")
+        return ""
     uploader = UploadController()
     upload_metadata = uploader.package_upload_metadata(
         copyright=1,
