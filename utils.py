@@ -195,7 +195,7 @@ def merge_videos_with_bgm(
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt") as f:
         f.write(
             "\n".join(
-                f"file '{os.path.abspath(os.path.join(OUTPUT_VIDEO_PATH, "tmp", fn))}'"
+                f"file '{os.path.abspath(os.path.join(OUTPUT_VIDEO_PATH, 'tmp', fn))}'"
                 for fn in fns
             )
         )
