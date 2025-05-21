@@ -356,7 +356,7 @@ class CustomizeModal(disnake.ui.Modal):
 
     async def callback(self, inter: disnake.ModalInteraction):
         logging.info(
-            f"@{inter.user.display_name} /customize title:{inter.text_values["title"]} content:{inter.text_values["content"]}"
+            f"@{inter.user.display_name} /customize title:{inter.text_values['title']} content:{inter.text_values['content']}"
         )
         title = inter.text_values["title"]
         content = inter.text_values["content"]
