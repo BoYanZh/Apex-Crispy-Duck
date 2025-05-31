@@ -9,8 +9,6 @@ import traceback
 import disnake
 from disnake.ext import commands
 
-import bilibili
-import youtube
 from config import *
 from utils import *
 
@@ -441,4 +439,6 @@ async def help(inter: disnake.ApplicationCommandInteraction, command: str = "") 
 
 
 if __name__ == "__main__":
+    import bilibili
+    import youtube
     bot.run(BOT_TOKEN)

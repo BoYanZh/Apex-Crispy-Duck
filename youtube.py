@@ -65,7 +65,7 @@ def resumable_upload(insert_request):
             time.sleep(sleep_seconds)
 
 
-def upload_video(filename, title):
+def get_credentials():
     flow = flow_from_clientsecrets("client_secrets.json", scope=YOUTUBE_UPLOAD_SCOPE)
     storage = Storage("youtube-oauth2.json")
     credentials = storage.get()
@@ -77,6 +77,12 @@ def upload_video(filename, title):
         http=credentials.authorize(httplib2.Http()),
         cache_discovery=False,
     )
+    logging.info("YouTube login check passed")
+    return youtube
+
+
+def upload_video(filename, title):
+    youtube = get_credentials()
     body = dict(
         snippet=dict(
             title=title,
@@ -91,3 +97,6 @@ def upload_video(filename, title):
         media_body=MediaFileUpload(filename, chunksize=-1, resumable=True),
     )
     return resumable_upload(insert_request)
+
+
+get_credentials()

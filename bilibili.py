@@ -32,3 +32,9 @@ def upload_video(video_path: str, output_fn: str) -> str:
     else:
         logging.error(publish_video_response["message"])
         return ""
+
+
+if not LoginController().check_bilibili_login():
+    logging.error("BiliBili login check failed")
+else:
+    logging.info("BiliBili login check passed")
