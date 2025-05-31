@@ -180,16 +180,25 @@ async def create_and_upload_final_video(
     logging.info(f"Uploading video {video_path} with title {title}")
 
     async def youtube_worker():
-        url = await asyncio.to_thread(youtube.upload_video, video_path, title)
+        msg = "Error uploading video to YouTube. No url returned."
+        try:
+            msg = await asyncio.to_thread(youtube.upload_video, video_path, title)
+        except Exception as e:
+            logging.error(f"Error uploading video: {e}")
+            msg = "Error uploading video to YouTube. Please check the logs."
         if inter.is_expired():
-            await channel.send(url)
+            await channel.send(msg)
         else:
-            await inter.edit_original_response(url)
+            await inter.edit_original_response(msg)
 
     async def bilibili_worker():
-        url = await asyncio.to_thread(bilibili.upload_video, video_path, title)
-        if url:
-            await channel.send(url)
+        msg = "Error uploading video to Bilibili. No url returned."
+        try:
+            msg = await asyncio.to_thread(bilibili.upload_video, video_path, title)
+        except Exception as e:
+            logging.error(f"Error uploading video: {e}")
+            msg = "Error uploading video to Bilibili. Please check the logs."
+        await channel.send(msg)
 
     await asyncio.gather(youtube_worker(), bilibili_worker())
 
