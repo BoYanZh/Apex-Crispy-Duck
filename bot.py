@@ -179,6 +179,7 @@ async def create_and_upload_final_video(
 
     async def youtube_worker():
         msg = "Error uploading video to YouTube. No url returned."
+        logging.info(f"running youtube.upload_video({video_path}, {title})")
         try:
             msg = await asyncio.to_thread(youtube.upload_video, video_path, title)
         except Exception as e:
@@ -191,6 +192,7 @@ async def create_and_upload_final_video(
 
     async def bilibili_worker():
         msg = "Error uploading video to Bilibili. No url returned."
+        logging.info(f"running bilibili.upload_video({video_path}, {title})")
         try:
             msg = await asyncio.to_thread(bilibili.upload_video, video_path, title)
         except Exception as e:
