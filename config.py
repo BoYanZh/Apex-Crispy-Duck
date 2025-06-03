@@ -8,6 +8,7 @@ BOT_TOKEN = config.get("BOT_TOKEN") or ""
 VIDEO_PATH = config.get("VIDEO_PATH") or ""
 AUDIO_PATH = config.get("AUDIO_PATH") or ""
 OUTPUT_VIDEO_PATH = config.get("OUTPUT_VIDEO_PATH") or ""
+OUTPUT_IMAGE_PATH = config.get("OUTPUT_IMAGE_PATH") or ""
 OUTPUT_AUDIO_PATH = config.get("OUTPUT_AUDIO_PATH") or ""
 OUTPUT_TEXT_PATH = config.get("OUTPUT_TEXT_PATH") or ""
 FONT_FILE_PATH = config.get("FONT_FILE_PATH") or ""
@@ -28,6 +29,8 @@ if not os.path.exists(OUTPUT_VIDEO_PATH):
     os.makedirs(OUTPUT_VIDEO_PATH)
 if not os.path.exists(os.path.join(OUTPUT_VIDEO_PATH, "tmp")):
     os.makedirs(os.path.join(OUTPUT_VIDEO_PATH, "tmp"))
+if not os.path.exists(OUTPUT_IMAGE_PATH):
+    os.makedirs(OUTPUT_IMAGE_PATH)
 if not os.path.exists(OUTPUT_AUDIO_PATH):
     os.makedirs(OUTPUT_AUDIO_PATH)
 if not os.path.exists(os.path.join(OUTPUT_AUDIO_PATH, "tmp")):

@@ -5,6 +5,7 @@
 import logging
 import random
 import time
+from venv import logger
 
 import httplib2
 from googleapiclient.discovery import build
@@ -37,7 +38,7 @@ def resumable_upload(insert_request):
                     logging.info(
                         "Video id '%s' was successfully uploaded." % response["id"]
                     )
-                    return f"https://youtu.be/{response['id']}"
+                    return response["id"]
                 else:
                     raise Exception(
                         "The upload failed with an unexpected response: %s" % response
@@ -81,7 +82,7 @@ def get_credentials():
     return youtube
 
 
-def upload_video(filename, title):
+def upload_video(video_path: str, image_path: str, title: str):
     youtube = get_credentials()
     body = dict(
         snippet=dict(
@@ -94,9 +95,16 @@ def upload_video(filename, title):
     insert_request = youtube.videos().insert(
         part=",".join(body.keys()),
         body=body,
-        media_body=MediaFileUpload(filename, chunksize=-1, resumable=True),
+        media_body=MediaFileUpload(video_path, chunksize=-1, resumable=True),
     )
-    return resumable_upload(insert_request)
+    video_id = resumable_upload(insert_request)
+    request = youtube.thumbnails().set(
+        videoId=video_id,
+        media_body=MediaFileUpload(image_path),
+    )
+    response = request.execute()
+    logger.info("Thumbnail set successfully. Response: %s", response)
+    return f"https://youtu.be/{video_id}"
 
 
 get_credentials()

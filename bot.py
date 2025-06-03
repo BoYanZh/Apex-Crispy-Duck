@@ -157,6 +157,11 @@ async def create_and_upload_final_video(
         os.path.join(OUTPUT_VIDEO_PATH, f"{output_fn}.mp4"),
         audio_path,
     )
+    image_path = await asyncio.to_thread(
+        create_cover_image,
+        os.path.join(VIDEO_PATH, fns[0]),
+        os.path.join(OUTPUT_IMAGE_PATH, f"{output_fn}.png"),
+    )
     duration = await asyncio.to_thread(get_media_duration, video_path)
 
     def format_seconds(seconds):
@@ -179,9 +184,15 @@ async def create_and_upload_final_video(
 
     async def youtube_worker():
         msg = "Error uploading video to YouTube. No url returned."
-        logging.info(f"running youtube.upload_video({video_path}, {title})")
+        logging.info(
+            f'running youtube.upload_video("{video_path}", "{image_path}", "{title}")'
+        )
         try:
-            msg = await asyncio.to_thread(youtube.upload_video, video_path, title)
+            msg = await asyncio.to_thread(
+                youtube.upload_video, video_path, image_path, title
+            )
+            if msg == "":
+                raise Exception("Upload failed, no URL returned.")
         except Exception as e:
             logging.error(f"Error uploading video: {e}")
             msg = "Error uploading video to YouTube. Please check the logs."
@@ -192,9 +203,15 @@ async def create_and_upload_final_video(
 
     async def bilibili_worker():
         msg = "Error uploading video to Bilibili. No url returned."
-        logging.info(f"running bilibili.upload_video({video_path}, {title})")
+        logging.info(
+            f'running bilibili.upload_video("{video_path}", "{image_path}", "{title}")'
+        )
         try:
-            msg = await asyncio.to_thread(bilibili.upload_video, video_path, title)
+            msg = await asyncio.to_thread(
+                bilibili.upload_video, video_path, image_path, title
+            )
+            if msg == "":
+                raise Exception("Upload failed, no URL returned.")
         except Exception as e:
             logging.error(f"Error uploading video: {e}")
             msg = "Error uploading video to Bilibili. Please check the logs."
@@ -443,4 +460,5 @@ async def help(inter: disnake.ApplicationCommandInteraction, command: str = "") 
 if __name__ == "__main__":
     import bilibili
     import youtube
+
     bot.run(BOT_TOKEN)
