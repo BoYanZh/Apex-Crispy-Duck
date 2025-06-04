@@ -373,9 +373,16 @@ class CustomizeModal(disnake.ui.Modal):
             ),
             disnake.ui.TextInput(
                 label="Content",
-                placeholder="Lorem ipsum dolor sit amet.",
+                placeholder="<description> <link> [@user]\n<description> <link> [@user]\n...",
                 custom_id="content",
                 style=disnake.TextInputStyle.paragraph,
+            ),
+            disnake.ui.TextInput(
+                label="User",
+                placeholder="John Doe (leave empty for yourself)",
+                custom_id="user",
+                style=disnake.TextInputStyle.short,
+                required=False,
             ),
         ]
         super().__init__(title="Video Details", components=components)
@@ -386,6 +393,7 @@ class CustomizeModal(disnake.ui.Modal):
         )
         title = inter.text_values["title"]
         content = inter.text_values["content"]
+        user = inter.text_values["user"]
         current_datetime = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         output_fn = title + "-" + current_datetime
         await inter.response.defer()
@@ -395,7 +403,7 @@ class CustomizeModal(disnake.ui.Modal):
             for line in content.splitlines()
             if extract_url_with_prefix(line, "https://outplayed.tv/")
         ]
-        user = inter.user.display_name
+        user = inter.user.display_name if user == "" else user
         texts = []
         fns = []
         await inter.edit_original_response(f"downloading {len(messages)} videos...")
@@ -420,7 +428,12 @@ class CustomizeModal(disnake.ui.Modal):
                     f"video duration is 0: {os.path.join(VIDEO_PATH, fn)}, message {message}"
                 )
                 continue
-            simple_msg = cleanup_msg(message)
+            parts = message.rsplit("@", 1)
+            if len(parts) > 1:
+                simple_msg = cleanup_msg(parts[0])
+                user = parts[1].strip().lstrip("@") if parts[1].strip() else user
+            else:
+                simple_msg = cleanup_msg(message)
             texts.append("@" + user + "\n" + simple_msg)
             fns.append(fn)
         await create_and_upload_final_video(inter, texts, fns, output_fn, title, True)
