@@ -100,7 +100,7 @@ def upload_video(video_path: str, image_path: str, title: str):
     video_id = resumable_upload(insert_request)
     request = youtube.thumbnails().set(
         videoId=video_id,
-        media_body=MediaFileUpload(image_path),
+        media_body=MediaFileUpload(image_path, chunksize=-1, resumable=True),
     )
     response = request.execute()
     logger.info("Thumbnail set successfully. Response: %s", response)

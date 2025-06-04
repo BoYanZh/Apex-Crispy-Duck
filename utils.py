@@ -357,5 +357,5 @@ def create_cover_image(video_path: str, output_image_path: str) -> str:
         stroke_width=10,
         stroke_fill=(0, 0, 0),
     )
-    img.save(output_image_path)
+    img.save(output_image_path, optimize=True, compress_level=9)
     return output_image_path
