@@ -301,9 +301,9 @@ def create_cover_image(video_path: str, output_image_path: str) -> str:
     color1 = (255, 223, 0)
     color2 = (255, 69, 0)
     color3 = (0, 150, 0)
-    font1 = ImageFont.truetype(FONT_FILE_PATH, 150)
-    font2 = ImageFont.truetype(FONT_FILE_PATH, 100)
-    font3 = ImageFont.truetype(FONT_FILE_PATH, 120)
+    font1 = ImageFont.truetype(FONT_FILE_PATH, 350)
+    font2 = ImageFont.truetype(FONT_FILE_PATH, 200)
+    font3 = ImageFont.truetype(FONT_FILE_PATH, 150)
     img_width, img_height = img.size
     padding_x = 40
     padding_y = 20
@@ -312,33 +312,33 @@ def create_cover_image(video_path: str, output_image_path: str) -> str:
     text1_width = text1_bbox[2] - text1_bbox[0]
     text1_height = text1_bbox[3] - text1_bbox[1]
     text1_x = (img_width - text1_width) / 2
-    text1_y = img_height * 0.35
+    text1_y = img_height * 0.0
 
     text2_bbox = draw.textbbox((0, 0), text2, font=font2)
     text2_width = text2_bbox[2] - text2_bbox[0]
     text2_height = text2_bbox[3] - text2_bbox[1]
     text2_x = (img_width - text2_width) / 2
-    text2_y = text1_y + text1_height + 50
+    text2_y = text1_y + text1_height + 100
 
     text3_bbox = draw.textbbox((0, 0), text3, font=font3)
     text3_width = text3_bbox[2] - text3_bbox[0]
     text3_height = text3_bbox[3] - text3_bbox[1]
     text3_x = (img_width - text3_width) / 2
-    text3_y = text2_y + text2_height + 80
+    text3_y = text2_y + text2_height + 200
 
-    rect3_x1 = text3_x - padding_x
-    rect3_y1 = text3_y
-    rect3_x2 = text3_x + text3_width + padding_x
-    rect3_y2 = text3_y + text3_height + padding_y * 3
+    # rect3_x1 = text3_x - padding_x
+    # rect3_y1 = text3_y
+    # rect3_x2 = text3_x + text3_width + padding_x
+    # rect3_y2 = text3_y + text3_height + padding_y * 3
 
-    draw.rectangle([rect3_x1, rect3_y1, rect3_x2, rect3_y2], fill=(0, 0, 0, 180))
+    # draw.rectangle([rect3_x1, rect3_y1, rect3_x2, rect3_y2], fill=(0, 0, 0, 180))
 
     draw.text(
         (text1_x, text1_y),
         text1,
         fill=color1,
         font=font1,
-        stroke_width=8,
+        stroke_width=20,
         stroke_fill=(0, 0, 0),
     )
     draw.text(
@@ -346,7 +346,7 @@ def create_cover_image(video_path: str, output_image_path: str) -> str:
         text2,
         fill=color2,
         font=font2,
-        stroke_width=7,
+        stroke_width=20,
         stroke_fill=(0, 0, 0),
     )
     draw.text(
@@ -354,7 +354,7 @@ def create_cover_image(video_path: str, output_image_path: str) -> str:
         text3,
         fill=color3,
         font=font3,
-        stroke_width=7,
+        stroke_width=10,
         stroke_fill=(0, 0, 0),
     )
     img.save(output_image_path)
