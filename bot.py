@@ -313,9 +313,9 @@ async def excavate(
     await create_and_upload_final_video(inter, texts, fns, output_fn, title)
 
 
-@bot.slash_command(description="Bake a video from messages within the last 24 hours.")
+@bot.slash_command(description="Bake a video from messages within the last 8 hours.")
 async def bake(
-    inter: disnake.ApplicationCommandInteraction, hours: int = 24, title: str = ""
+    inter: disnake.ApplicationCommandInteraction, hours: int = 8, title: str = ""
 ) -> None:
     logging.info(f"@{inter.user.display_name} /bake hours:{hours} title:{title}")
     current_datetime = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")

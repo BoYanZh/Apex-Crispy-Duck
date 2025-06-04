@@ -295,8 +295,8 @@ def create_cover_image(video_path: str, output_image_path: str) -> str:
     img = Image.open(image_stream).convert("RGBA")
     draw = ImageDraw.Draw(img)
 
-    text1 = "Apex Clips"
-    text2 = " "
+    text1 = "Apex"
+    text2 = "精彩时刻"
     text3 = datetime.datetime.now().strftime("%m/%d/%y")
     color1 = (255, 223, 0)
     color2 = (255, 69, 0)
