@@ -324,7 +324,7 @@ def create_cover_image(video_path: str, output_image_path: str) -> str:
     text3_width = text3_bbox[2] - text3_bbox[0]
     text3_height = text3_bbox[3] - text3_bbox[1]
     text3_x = (img_width - text3_width) / 2
-    text3_y = text2_y + text2_height + 200
+    text3_y = text2_y + text2_height + 100
 
     # rect3_x1 = text3_x - padding_x
     # rect3_y1 = text3_y
