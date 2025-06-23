@@ -14,7 +14,7 @@ from utils import *
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s %(levelname)-8s %(message)s",
+    format="%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
     handlers=[logging.FileHandler("bot.log"), logging.StreamHandler()],
 )
 
