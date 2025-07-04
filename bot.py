@@ -194,7 +194,7 @@ async def create_and_upload_final_video(
             if msg == "":
                 raise Exception("Upload failed, no URL returned.")
         except Exception as e:
-            logging.error(f"Error uploading video: {e}")
+            logging.exception(f"Error uploading video: {e}")
             msg = "Error uploading video to YouTube. Please check the logs."
         if inter.is_expired():
             await channel.send(msg)
@@ -213,7 +213,7 @@ async def create_and_upload_final_video(
             if msg == "":
                 raise Exception("Upload failed, no URL returned.")
         except Exception as e:
-            logging.error(f"Error uploading video: {e}")
+            logging.exception(f"Error uploading video: {e}")
             msg = "Error uploading video to Bilibili. Please check the logs."
         await channel.send(msg)
 

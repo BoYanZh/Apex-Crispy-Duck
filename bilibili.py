@@ -2,6 +2,7 @@ import logging
 
 from bilitool import CheckFormat, LoginController, UploadController
 from bilitool.model.model import Model
+from requests.adapters import HTTPAdapter
 
 
 def upload_video(video_path: str, image_path: str, title: str) -> str:
@@ -9,6 +10,8 @@ def upload_video(video_path: str, image_path: str, title: str) -> str:
         logging.error("bilibili login check failed")
         return ""
     uploader = UploadController()
+    uploader.bili_uploader.session.mount("http://", HTTPAdapter(max_retries=5))
+    uploader.bili_uploader.session.mount("https://", HTTPAdapter(max_retries=5))
     upload_metadata = uploader.package_upload_metadata(
         copyright=1,
         tid=171,
