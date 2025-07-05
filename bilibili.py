@@ -31,6 +31,7 @@ def upload_video(video_path: str, image_path: str, title: str) -> str:
     publish_video_response = uploader.bili_uploader.publish_video(
         bilibili_filename=bilibili_filename
     )
+    logging.debug(f"publish_video_response: {publish_video_response}")
     if publish_video_response["code"] == 0:
         bvid = publish_video_response["data"]["bvid"]
         logging.info(f"upload success!\tbvid:{bvid}")
