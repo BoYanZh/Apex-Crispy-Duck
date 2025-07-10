@@ -1,6 +1,6 @@
 # Apex Crispy Duck
 
-A powerful Discord bot designed to automate the creation of "Apex Legends" highlight compilations. It fetches clips shared in your Discord server, processes them with professional-looking overlays and normalized audio, merges them into a single video with background music, and even generates a custom thumbnail. The entire process is hardware-accelerated using NVIDIA GPUs for maximum speed.
+A powerful Discord bot designed to automate the creation of "Apex Legends" highlight compilations. It fetches clips uploaded to outplayed.tv shared in your Discord server, processes them with professional-looking overlays and normalized audio, merges them into a single video with background music, and even generates a custom thumbnail. The entire process is hardware-accelerated using NVIDIA GPUs for maximum speed.
 
 ## Features
 
@@ -98,7 +98,7 @@ A powerful Discord bot designed to automate the creation of "Apex Legends" highl
 Here are the slash commands you can use to interact with the bot:
 
 *   `/bake [hours] [title]`
-    *   **Description**: Creates a highlight video from clips posted in the configured channels within a recent time frame. This is the most common command for generating regular compilations.
+    *   **Description**: Creates a highlight video from clips uploaded to outplayed.tv posted in the configured channels within a recent time frame. This is the most common command for generating regular compilations.
     *   **`hours`** (optional, default: 8): How many hours back to search for clips.
     *   **`title`** (optional): A custom title for the generated video. If not provided, a title will be generated based on the current date and time.
 
