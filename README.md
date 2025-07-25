@@ -32,7 +32,7 @@ A powerful Discord bot designed to automate the creation of "Apex Legends" highl
 *   **Hardware**: An **NVIDIA GPU** that supports NVENC encoding is **required**.
 *   **Software**:
     *   Python 3.8+
-    *   `ffmpeg` and `ffprobe` installed and accessible in your system's PATH.
+    *   `ffmpeg`, `ffprobe`, and `biliup` installed and accessible in your system's PATH.
     *   `pdm` (for Python package management).
     *   `git` (for cloning the repository).
 

@@ -15,13 +15,72 @@ from PIL import Image, ImageDraw, ImageFont
 
 from config import *
 
-_original_subprocess_run = subprocess.run
-
 
 def subprocess_run(*args, **kwargs):
+    """
+    A wrapper around subprocess.run that logs the command, captures the
+    output, and optionally prints the output in real-time.
+    It accepts a custom keyword argument `stream_print` (default: False)
+    to control real-time printing.
+    """
     run_args = args[0]
     logging.info(f"Running command: {shlex.join(run_args)}")
-    return _original_subprocess_run(*args, **kwargs)
+
+    # Pop arguments that are not supported by Popen and store them
+    stream_print = kwargs.pop("stream_print", False)
+    check = kwargs.pop("check", False)
+    # We always capture output, so pop this to avoid sending to Popen
+    kwargs.pop("capture_output", None)
+    # These are not supported in this streaming implementation
+    kwargs.pop("timeout", None)
+    kwargs.pop("input", None)
+
+    # If text=True, Popen's stdout will be a text stream.
+    if kwargs.get("text"):
+        kwargs.setdefault("encoding", "utf-8")
+        kwargs.setdefault("errors", "replace")
+
+    process = subprocess.Popen(
+        *args,
+        **kwargs,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+
+    stdout_lines = []
+    # Read line by line, which is robust for streaming output
+    # The loop terminates when the subprocess closes its stdout
+    for line in iter(process.stdout.readline, b'' if not kwargs.get("text") else ''):
+        if stream_print:
+            line_to_print = line
+            # If it's bytes, we decode it for printing.
+            if isinstance(line_to_print, bytes):
+                line_to_print = line_to_print.decode(kwargs.get("encoding", "utf-8"), errors="replace")
+            print(line_to_print.strip())
+        stdout_lines.append(line)
+
+    process.stdout.close()
+    returncode = process.wait()
+
+    # Join the collected lines
+    if kwargs.get("text"):
+        stdout_content = "".join(stdout_lines)
+    else:
+        stdout_content = b"".join(stdout_lines)
+
+    result = subprocess.CompletedProcess(
+        args=process.args,
+        returncode=returncode,
+        stdout=stdout_content,
+        stderr=None,  # Stderr is redirected to stdout
+    )
+
+    if check and result.returncode != 0:
+        raise subprocess.CalledProcessError(
+            result.returncode, result.args, result.stdout, result.stderr
+        )
+
+    return result
 
 
 subprocess.run = subprocess_run
