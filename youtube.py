@@ -2,10 +2,8 @@
 
 # taken from https://developers.google.com/youtube/v3/guides/uploading_a_video
 
-import logging
 import random
 import time
-from venv import logger
 
 import httplib2
 from googleapiclient.discovery import build
@@ -14,6 +12,8 @@ from googleapiclient.http import MediaFileUpload
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.file import Storage
 from oauth2client.tools import run_flow
+
+from logger import logger
 
 httplib2.RETRIES = 1
 MAX_RETRIES = 10
@@ -31,11 +31,11 @@ def resumable_upload(insert_request):
     retry = 0
     while response is None:
         try:
-            logging.info("Uploading file...")
+            logger.info("Uploading file...")
             status, response = insert_request.next_chunk()
             if response is not None:
                 if "id" in response:
-                    logging.info(
+                    logger.info(
                         "Video id '%s' was successfully uploaded." % response["id"]
                     )
                     return response["id"]
@@ -55,14 +55,14 @@ def resumable_upload(insert_request):
             error = "A retriable error occurred: %s" % e
 
         if error is not None:
-            logging.error(error)
+            logger.error(error)
             retry += 1
             if retry > MAX_RETRIES:
                 raise Exception("No longer attempting to retry.")
 
             max_sleep = 2**retry
             sleep_seconds = random.random() * max_sleep
-            logging.info("Sleeping %f seconds and then retrying..." % sleep_seconds)
+            logger.info("Sleeping %f seconds and then retrying..." % sleep_seconds)
             time.sleep(sleep_seconds)
 
 
@@ -78,11 +78,12 @@ def get_credentials():
         http=credentials.authorize(httplib2.Http()),
         cache_discovery=False,
     )
-    logging.info("YouTube login check passed")
+    logger.info("YouTube login check passed")
     return youtube
 
 
 def upload_video(video_path: str, image_path: str, title: str):
+    logger.info("Uploading video...")
     youtube = get_credentials()
     body = dict(
         snippet=dict(

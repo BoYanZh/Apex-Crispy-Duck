@@ -2,7 +2,6 @@ import asyncio
 import datetime
 import hashlib
 import json
-import logging
 import os
 import traceback
 
@@ -10,13 +9,8 @@ import disnake
 from disnake.ext import commands
 
 from config import *
+from logger import logger
 from utils import *
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)-8s %(message)s [%(filename)s:%(lineno)d]",
-    handlers=[logging.FileHandler("bot.log"), logging.StreamHandler()],
-)
 
 intents = disnake.Intents.default()
 intents.message_content = True
@@ -41,7 +35,7 @@ async def _patched_edit_original_response(*args, **kwargs):
         try:
             return await _original_edit_original_response(*args, **kwargs)
         except Exception as e:
-            logging.error(
+            logger.error(
                 f"Error in edit_original_response (attempt {i+1}/{retries}): {e}"
             )
             if i < retries - 1:
@@ -49,7 +43,7 @@ async def _patched_edit_original_response(*args, **kwargs):
         finally:
             if len(args) > 1 and isinstance(args[1], str):
                 content = args[1]
-                logging.info(f"edit_original_response: {content}")
+                logger.info(f"edit_original_response: {content}")
 
 
 disnake.Interaction.edit_original_response = _patched_edit_original_response
@@ -61,7 +55,7 @@ async def collect_messages(hours: int = 72) -> dict[str, list[dict[str, str]]]:
     guild = bot.get_guild(RUN_GUILD)
     res: dict[str, list[dict[str, str]]] = {}
     if not guild:
-        logging.error("Guild not found")
+        logger.error("Guild not found")
         return res
     for category in guild.categories:
         if category.name != CATEGORY:
@@ -89,7 +83,7 @@ async def fetch_one_year_msg() -> None:
         before = today - datetime.timedelta(hours=24 * i)
         guild = bot.get_guild(RUN_GUILD)
         if not guild:
-            logging.error("Guild not found")
+            logger.error("Guild not found")
             return
         for category in guild.categories:
             if category.name != CATEGORY:
@@ -143,7 +137,7 @@ async def create_and_upload_final_video(
         video_durations.append(
             await asyncio.to_thread(get_media_duration, os.path.join(VIDEO_PATH, fn))
         )
-    logging.info(f"total video duration: {sum(video_durations)}")
+    logger.info(f"total video duration: {sum(video_durations)}")
     await inter.edit_original_response("merging audios...")
     audio_path = await asyncio.to_thread(
         merge_audios,
@@ -180,11 +174,11 @@ async def create_and_upload_final_video(
     channel = bot.get_channel(inter.channel_id) or await bot.fetch_channel(
         inter.channel_id
     )
-    logging.info(f"Uploading video {video_path} with title {title}")
+    logger.info(f"Uploading video {video_path} with title {title}")
 
     async def youtube_worker():
         msg = "Error uploading video to YouTube. No url returned."
-        logging.info(
+        logger.info(
             f'running youtube.upload_video("{video_path}", "{image_path}", "{title}")'
         )
         try:
@@ -194,7 +188,7 @@ async def create_and_upload_final_video(
             if msg == "":
                 raise Exception("Upload failed, no URL returned.")
         except Exception as e:
-            logging.exception(f"Error uploading video: {e}")
+            logger.exception(f"Error uploading video: {e}")
             msg = "Error uploading video to YouTube. Please check the logs."
         if inter.is_expired():
             await channel.send(msg)
@@ -203,7 +197,7 @@ async def create_and_upload_final_video(
 
     async def bilibili_worker():
         msg = "Error uploading video to Bilibili. No url returned."
-        logging.info(
+        logger.info(
             f'running bilibili.upload_video("{video_path}", "{image_path}", "{title}")'
         )
         try:
@@ -213,7 +207,7 @@ async def create_and_upload_final_video(
             if msg == "":
                 raise Exception("Upload failed, no URL returned.")
         except Exception as e:
-            logging.exception(f"Error uploading video: {e}")
+            logger.exception(f"Error uploading video: {e}")
             msg = "Error uploading video to Bilibili. Please check the logs."
         await channel.send(msg)
 
@@ -222,7 +216,7 @@ async def create_and_upload_final_video(
 
 @bot.event
 async def on_ready():
-    logging.info(f"We have logged in as {bot.user}")
+    logger.info(f"We have logged in as {bot.user}")
 
 
 @bot.event
@@ -230,7 +224,7 @@ async def on_slash_command_error(
     inter: disnake.ApplicationCommandInteraction,
     exception: commands.CommandError,
 ):
-    logging.error(
+    logger.error(
         f"An exception occurred: {exception}"
         + "\n".join(
             traceback.format_exception(
@@ -250,7 +244,7 @@ async def excavate(
     duration: int = 10,
     title: str = "",
 ) -> None:
-    logging.info(
+    logger.info(
         f"@{inter.user.display_name} /excavate minute_start:{minute_start} duration:{duration} title:{title}"
     )
     await inter.response.defer()
@@ -290,7 +284,7 @@ async def excavate(
             get_media_duration, os.path.join(VIDEO_PATH, fn)
         )
         if video_duration == 0.0:
-            logging.warning(
+            logger.warning(
                 f"video duration is 0: {os.path.join(VIDEO_PATH, fn)}, message {message}"
             )
             continue
@@ -317,7 +311,7 @@ async def excavate(
 async def bake(
     inter: disnake.ApplicationCommandInteraction, hours: int = 8, title: str = ""
 ) -> None:
-    logging.info(f"@{inter.user.display_name} /bake hours:{hours} title:{title}")
+    logger.info(f"@{inter.user.display_name} /bake hours:{hours} title:{title}")
     current_datetime = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     output_fn = current_datetime
     await inter.response.defer()
@@ -351,7 +345,7 @@ async def bake(
                 get_media_duration, os.path.join(VIDEO_PATH, fn)
             )
             if video_duration == 0.0:
-                logging.warning(
+                logger.warning(
                     f"video duration is 0: {os.path.join(VIDEO_PATH, fn)}, message {message}"
                 )
                 continue
@@ -388,7 +382,7 @@ class CustomizeModal(disnake.ui.Modal):
         super().__init__(title="Video Details", components=components)
 
     async def callback(self, inter: disnake.ModalInteraction):
-        logging.info(
+        logger.info(
             f"@{inter.user.display_name} /customize title:{inter.text_values['title']} content:{inter.text_values['content']}"
         )
         title = inter.text_values["title"]
@@ -424,7 +418,7 @@ class CustomizeModal(disnake.ui.Modal):
                 get_media_duration, os.path.join(VIDEO_PATH, fn)
             )
             if video_duration == 0.0:
-                logging.warning(
+                logger.warning(
                     f"video duration is 0: {os.path.join(VIDEO_PATH, fn)}, message {message}"
                 )
                 continue
@@ -446,7 +440,7 @@ async def customize(inter: disnake.ApplicationCommandInteraction):
 
 @bot.slash_command(description="Get the list of commands.")
 async def help(inter: disnake.ApplicationCommandInteraction, command: str = "") -> None:
-    logging.info(f"@{inter.user.display_name} /help command:{command}")
+    logger.info(f"@{inter.user.display_name} /help command:{command}")
     await inter.response.defer()
     embed = disnake.Embed(title="Commands Info", color=disnake.Color.blue())
     if command != "":
