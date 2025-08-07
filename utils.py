@@ -50,12 +50,14 @@ def subprocess_run(*args, **kwargs):
     stdout_lines = []
     # Read line by line, which is robust for streaming output
     # The loop terminates when the subprocess closes its stdout
-    for line in iter(process.stdout.readline, b'' if not kwargs.get("text") else ''):
+    for line in iter(process.stdout.readline, b"" if not kwargs.get("text") else ""):
         if stream_print:
             line_to_print = line
             # If it's bytes, we decode it for printing.
             if isinstance(line_to_print, bytes):
-                line_to_print = line_to_print.decode(kwargs.get("encoding", "utf-8"), errors="replace")
+                line_to_print = line_to_print.decode(
+                    kwargs.get("encoding", "utf-8"), errors="replace"
+                )
             print(line_to_print.strip())
         stdout_lines.append(line)
 
@@ -351,7 +353,7 @@ def create_cover_image(video_path: str, output_image_path: str) -> str:
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout_data, _ = process.communicate()
     image_stream = io.BytesIO(stdout_data)
-    img = Image.open(image_stream).convert("RGBA")
+    img = Image.open(image_stream).convert("RGB")
     draw = ImageDraw.Draw(img)
 
     text1 = "Apex"
@@ -416,5 +418,5 @@ def create_cover_image(video_path: str, output_image_path: str) -> str:
         stroke_width=10,
         stroke_fill=(0, 0, 0),
     )
-    img.save(output_image_path, optimize=True, compress_level=9)
+    img.save(output_image_path, format="JPEG", quality=90, optimize=True)
     return output_image_path
